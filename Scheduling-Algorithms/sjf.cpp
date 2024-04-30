@@ -1,83 +1,52 @@
-#include<iostream>
-#include<algorithm>
+#include <stdio.h>
 
-using namespace std;
+int main()
+{
+    int n;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
 
-struct Process{
-	int pid;
-	int at;
-	int bt;
-};
+    int BT[10], AT[10];
+    float avgTAT = 0, avgWT = 0;
 
-bool compare(Process a, Process b){
-	return a.bt < b.bt;
+    int sum_burst_time = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("Enter the arrival time for process P%d: ", i + 1);
+        scanf("%d", &AT[i]);
+        printf("Enter the burst time for process P%d: ", i + 1);
+        scanf("%d", &BT[i]);
+        sum_burst_time += BT[i];
+    }
+
+    BT[9] = 9999;
+
+    printf("\nProcess\tArrival\tBurst\tComplete\tTAT\tWaiting\n");
+
+    int time = 0;
+
+    while (time < sum_burst_time)
+    {
+        int smallest = 9;
+        for (int i = 0; i < n; i++)
+        {
+            if (AT[i] <= time && BT[i] > 0 && BT[i] < BT[smallest])
+                smallest = i;
+        }
+        int completionTime = time + BT[smallest];
+        int tat = completionTime - AT[smallest];
+        int wt = tat - BT[smallest];
+        
+        printf("%d\t%d\t%d\t%d\t\t%d\t%d\n", smallest + 1, AT[smallest], BT[smallest], completionTime, tat, wt);
+        avgTAT += tat;
+        avgWT += wt;
+        time += BT[smallest];
+        BT[smallest] = 0;
+    }
+
+    printf("\nAverage TAT: %.1f\n", avgTAT / n);
+    printf("Average WT: %.1f\n", avgWT / n);
+
+    return 0;
 }
-
-void getCT(Process proc[],int n,int ct[]){
-	sort(proc,proc+n,compare);
-	
-	int currentTime = 0;
-	
-	for(int i=0;i<n;i++){
-		if(proc[i].at>currentTime){
-			currentTime = proc[i].at;
-		}
-		
-		ct[i]=currentTime + proc[i].bt;
-		currentTime = ct[i];
-	}
-}
-
-
-void getTAT(Process proc[],int n,int ct[],int tat[]){
-	for(int i=0;i<n;i++){
-		tat[i]= ct[i] - proc[i].at;
-	}
-}
-
-
-void getWT(Process proc[],int n,int tat[],int wt[]){
-	for(int i=0;i<n;i++){
-		wt[i]=tat[i]-proc[i].bt;
-	}
-}
-
-void result(Process proc[],int n){
-	int ct[n],wt[n],tat[n];
-	int totalwt=0;
-	int totaltat=0;
-	
-	getCT(proc,n,ct);
-	getTAT(proc,n,ct,tat);
-	getWT(proc,n,tat,wt);	
-	
-	 cout << "Process\t\tArrival\t\tBurst\t\tComplete\tTAT\t  Waiting" << endl;
-	 
-	 for(int i=0;i<n;i++){
-	 	totalwt+=wt[i];
-	 	totaltat+=tat[i];
-	 	
-	 	 cout<<proc[i].pid<<"\t\t"<<proc[i].at<<"\t\t"<<proc[i].bt<<"\t\t"<<ct[i]<<"\t\t"<< tat[i]<<"\t\t"<<wt[i]<<endl;
-	 }
-	 
-	 cout<<"Average TAT:"<<(float)totaltat/n<<endl;
-	 cout<<"Average WT:"<<(float)totalwt/n<<endl;
-}
-
-int main(){
-	cout<<"Shortest Job First Scheduling"<<endl;
-	int n;
-	cout<<"Enter number of processes:";
-	cin>>n;
-	
-	Process proc[n];
-	for(int i=0;i<n;i++){
-		cout <<"Enter AT and BT for Process"<<i+1<<":";
-        cin>>proc[i].at>>proc[i].bt;
-        proc[i].pid=i+1;
-	}
-	
-	result(proc,n);
-	return 0;
-}
-
